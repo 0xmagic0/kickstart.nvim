@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -129,7 +129,7 @@ vim.opt.smartcase = true
 vim.opt.signcolumn = 'yes'
 
 -- Decrease update time
-vim.opt.updatetime = 250
+vim.opt.updatetime = 50
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
@@ -154,6 +154,41 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
+-- Tab
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+
+-- SmartIndent
+vim.opt.smartindent = true
+
+-- Wrap
+vim.opt.wrap = false
+
+-- Enable 24-bit RGB color in the TUI
+vim.opt.termguicolors = true
+
+-- Color Column
+vim.opt.colorcolumn = '80'
+
+--[[ My added keymaps ]]
+
+-- Go to netrw
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
+
+-- Move highlighted blocks
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
+
+-- Keep cursor in the middle while using Control+D and Control+U
+vim.keymap.set('n', '<C-d>', '<C-d>zz')
+vim.keymap.set('n', '<C-u>', '<C-u>zz')
+
+-- Keep search terms in the middle
+vim.keymap.set('n', 'n', 'nzzzv')
+vim.keymap.set('n', 'N', 'Nzzzv')
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -162,8 +197,12 @@ vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump { count = -1 }
+end, { desc = 'Go to previous [D]iagnostic message' })
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump { count = 1 }
+end, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -185,10 +224,10 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+-- vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+-- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+-- vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -886,6 +925,51 @@ require('lazy').setup({
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
   -- { import = 'custom.plugins' },
+
+  -- Theme onedark
+  {
+    'navarasu/onedark.nvim',
+    priority = 1000,
+    config = function()
+      require('onedark').setup {
+        style = 'warm',
+        transparent = true,
+      }
+      vim.cmd.colorscheme 'onedark'
+      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+    end,
+  },
+
+  -- Harpoon for file Navigation
+  {
+    'ThePrimeagen/harpoon',
+    config = function()
+      local mark = require 'harpoon.mark'
+      local ui = require 'harpoon.ui'
+
+      -- Remaps
+      vim.keymap.set('n', '<leader>a', function()
+        mark.add_file()
+      end, { desc = 'Mark a file' })
+      vim.keymap.set('n', '<C-e>', function()
+        ui.toggle_quick_menu()
+      end, { desc = 'Toggle Quick Menu' })
+
+      vim.keymap.set('n', '<C-h>', function()
+        ui.nav_file(1)
+      end, { desc = ' Navigate to File 1' })
+      vim.keymap.set('n', '<C-j>', function()
+        ui.nav_file(2)
+      end, { desc = ' Navigate to File 2' })
+      vim.keymap.set('n', '<C-k>', function()
+        ui.nav_file(3)
+      end, { desc = ' Navigate to File 3' })
+      vim.keymap.set('n', '<C-l>', function()
+        ui.nav_file(4)
+      end, { desc = ' Navigate to File 4' })
+    end,
+  },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
